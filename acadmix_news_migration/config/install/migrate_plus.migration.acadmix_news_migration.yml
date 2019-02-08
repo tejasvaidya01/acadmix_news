@@ -1,0 +1,63 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - acadmix_news_migration
+id: news
+class: null
+field_plugin_method: null
+cck_plugin_method: null
+migration_tags:
+  - CSV
+migration_group: chem
+label: 'News items content migration'
+source:
+  plugin: csv
+  path: /var/www/migrationdata/csv/news-item-sample.csv
+  delimiter: ','
+  enclosure: '"'
+  header_row_count: 1
+  keys:
+    - id
+  constants:
+    file_source: /var/www/migrationdata/news_images
+    file_dest: 'public://news_images/'
+process:
+  type:
+    plugin: default_value
+    default_value: news_item
+  source_path:
+    -
+      plugin: concat
+      delimiter: /
+      source:
+        - constants/file_source
+        - image_file
+  title: title
+  body/value: body
+  body/format:
+    plugin: default_value
+    default_value: basic_html
+  field_news_images:
+    plugin: file_import
+    source: '@source_path'
+    destination: constants/file_dest
+  field_news_date: 
+    plugin: format_date
+    from_format: 'd/m/Y'
+    to_format: 'Y-m-d'
+    source: news_date
+  field_news_type:
+    -
+      plugin: entity_lookup
+      entity_type: taxonomy_term
+      bundle: news_type
+      source: news_type
+destination:
+  plugin: 'entity:node'
+  bundle: news_item
+migration_dependencies:
+  required:
+      - news_types
+  optional: {  }
